@@ -1,6 +1,6 @@
 import 'element-plus/dist/index.css';
-import '@/icons/index';
 
+// import '@/icons/index';
 import { createApp } from 'vue';
 
 import axios from 'axios';

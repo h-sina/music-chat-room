@@ -5,8 +5,7 @@ import {
 } from 'vue-router';
 
 import { getAuth } from '@/utils/auth';
-
-import Home from '../views/Home.vue';
+import Home from '@/views/Home.vue';
 
 const routes = [
   {
@@ -31,19 +30,19 @@ const routes = [
     path: '/archive',
     name: 'archive',
     component: () =>
-      import(/* webpackChunkName: "about" */ '../views/Archive.vue'),
+      import(/* webpackChunkName: "archive" */ '../views/Archive.vue'),
   },
   {
     path: '/timeline',
     name: 'timeline',
     component: () =>
-      import(/* webpackChunkName: "about" */ '../views/Timeline.vue'),
+      import(/* webpackChunkName: "timeline" */ '../views/Timeline.vue'),
   },
   {
     path: '/project',
     name: 'project',
     component: () =>
-      import(/* webpackChunkName: "about" */ '../views/Project.vue'),
+      import(/* webpackChunkName: "project" */ '../views/Project.vue'),
   },
   {
     path: '/message',
