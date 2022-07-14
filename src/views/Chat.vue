@@ -16,7 +16,7 @@
           </div>
           <div>
             <span>
-              <a target="_blank" href="https://github.com/h-sina">
+              <a target="_blank" href="https://github.com/h-sina/music-chat-room">
                 <font-awesome-icon icon="fa-brands fa-github" />开源地址
               </a>
             </span>

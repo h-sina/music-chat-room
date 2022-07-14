@@ -1,5 +1,5 @@
 import { store } from '@/store/index';
-import Memory from '@/utils/cache';
+import { Memory } from '@/utils/cache';
 import {
   clearLocal,
   getLocal,

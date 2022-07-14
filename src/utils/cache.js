@@ -1,6 +1,6 @@
 import { KEY } from '@/utils/setting';
 
-export default class Memery {
+export class Memory {
   /** 根据key来获取value */
   cache = {};
   alive;

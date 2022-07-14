@@ -23,52 +23,29 @@ module.exports = {
   mode: 'development',
   devtool: 'source-map',
   entry: {
-    index: path.resolve(__dirname, './src/main.ts'),
+    index: resolve('src/main.ts'),
     vendor: ['vue', 'axios'],
   },
   output: {
-    path: path.resolve(__dirname, 'dist'),
+    path: resolve('dist'),
     filename: 'js/[name].bundle.js',
   },
   resolve: {
     extensions: ['.ts', '.tsx', '.js'],
     alias: {
-      '@': path.resolve(__dirname, './src/'),
+      '@': resolve('src'),
     },
   },
-  // optimization: {
-  //   minimize: true,
-  //   runtimeChunk: true,
-  //   removeAvailableModules: false,
-  //   removeEmptyChunks: false,
-  //   splitChunks: false,
-  //   minimizer: [
-  //     new TerserPlugin(),
-  //     new CssMinimizerPlugin(),
-  //     new ImageMinimizerPlugin({
-  //       minimizer: {
-  //         implementation: ImageMinimizerPlugin.squooshMinify,
-  //         options: {
-  //           encodeOptions: {
-  //             webp: {
-  //               lossless: 1,
-  //             },
-  //           },
-  //         },
-  //       },
-  //     }),
-  //   ],
-  // },
   devServer: {
     static: {
-      directory: path.join(__dirname, 'dist'),
+      directory: resolve('dist'),
     },
     compress: true,
     port: 3000,
     hot: true,
-    // 解决history刷新找不到页面问题
     historyApiFallback: {
-      index: '/index.html',
+      index: path.resolve(__dirname, 'index.html'),
+      //与output的publicPath有关(HTMLplugin生成的html默认为index.html)
     },
   },
   module: {
@@ -90,7 +67,7 @@ module.exports = {
       },
       {
         test: /\.(t|j|mj)s$/,
-        include: path.resolve(__dirname, './node_modules/element-plus'),
+        include: resolve('node_modules/element-plus'),
         resolve: {
           fullySpecified: false,
         },
@@ -116,7 +93,7 @@ module.exports = {
   plugins: [
     new HtmlWebpackPlugin({
       filename: 'index.html',
-      template: path.resolve(__dirname, './public/index.html'),
+      template: resolve('public/index.html'),
       chunks: ['index'],
     }),
     new VueLoaderPlugin(),
@@ -130,9 +107,5 @@ module.exports = {
     Components({
       resolvers: [ElementPlusResolver()],
     }),
-    // new webpack.IgnorePlugin({
-    //   resourceRegExp: /^\.\/locale$/,
-    //   contextRegExp: /moment$/,
-    // }),
   ],
 };

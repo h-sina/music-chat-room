@@ -13,7 +13,7 @@
       <el-button type="primary" @click="dislogClose.dialogVisible = true">登录</el-button>
       <el-button type="danger" @click="dislogClose.dialogVisibleRe = true">注册</el-button>
       <a
-        href="https://h-sina.github.io"
+        href="https://github.com/h-sina/music-chat-room"
         target="_blank"
         class="github-corner"
         aria-label="View source on Github"
