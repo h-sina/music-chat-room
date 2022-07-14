@@ -100,8 +100,6 @@ import { ElMessage } from "element-plus";
 import { useRouter } from "vue-router";
 import request from "@/utils/request";
 import { setAuth, clearAuth } from '@/utils/auth'
-// const activeIndex = ref("1");
-// const activeIndex2 = ref("1");
 const router = useRouter();
 const data = reactive({
   form: {
@@ -146,8 +144,6 @@ const handleClose = () => {
 const submitLogin = () => {
   if (!data.form.username || !data.form.password) return;
   request('post', '/api/login', qs.stringify(data.form), { 'content-type': 'application/x-www-form-urlencoded' })
-    // axios
-    // .post("http://localhost:3007/api/login", qs.stringify(data.form))
     .then(res => {
       if (res.data.status == 0) {
         const re = res.config.data.split("&");
@@ -159,8 +155,6 @@ const submitLogin = () => {
           message: "登录成功！开始你的博客之旅吧🧐",
           type: "success"
         });
-        // console.log((res.data.token).split(" ")[1]);
-
         setAuth({ token: res.data.token, info: { username: userInfo.username } }, 1);
 
         router.push("/articles");
@@ -174,11 +168,9 @@ const submitLogin = () => {
   handleClose();
 };
 const submitRegister = () => {
-  request('post', '/api/register', qs.stringify(data.form), { 'content-type': 'application/x-www-form-urlencoded' })
-    // axios
-    // .post("http://81.69.234.69:8003/api/register", qs.stringify(data.formRe))
+  if (!data.formRe.username || !data.formRe.password) return;
+  request('post', '/api/register', qs.stringify(data.formRe), { 'content-type': 'application/x-www-form-urlencoded' })
     .then(res => {
-      console.log(res);
       if (res.data.status == 0) {
         ElMessage({
           message: "注册成功！快去登录吧😁",

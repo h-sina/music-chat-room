@@ -12,7 +12,11 @@ export default defineComponent({
 </script>
 <style scoped>
 .loading {
-  text-align: center;
-  padding: 30px;
+  width: 100%;
+  height: 100%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  /* padding: 30px; */
 }
 </style>

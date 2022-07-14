@@ -1,5 +1,5 @@
 <template>
-  <div class="main_movie">
+  <div class="main">
     <div class="main_movie" v-for="it in data.typeList" :key="it.id">
       <h4 style="width: 100%">{{it.name}}</h4>
       <div class="cardMusic" v-for="item in data.musicList[it.id]" :key="item.id">
@@ -22,23 +22,40 @@
 import axios from 'axios';
 import request from "@/utils/request";
 import LoadingCustom from "../components/Loading.vue";
-import { defineComponent, reactive } from "vue";
+import { defineComponent, reactive, onMounted } from "vue";
+import { onBeforeRouteLeave } from 'vue-router';
 import { Aim } from "@element-plus/icons-vue";
+import musicRequest from "@/utils/musicRequest";
+import { ElMessage } from "element-plus";
 let audio = new Audio();
+/** 播放音乐 */
 const openMusic = id => {
   audio.pause();
-  // request('get', `/song/url?id=${id}`)
-  axios
-    .get(`https://wyy-4u9j092ck-h-sina.vercel.app/song/url?id=${id}`)
+  musicRequest('get', `/song/url?id=${id}`)
     .then(res => {
-      console.log(res.data.data[0].url);
       audio.src = res.data.data[0].url;
-      audio.play();
+      audio.play()
+        .then(() => {
+          ElMessage({
+            message: "稍等正在获取资源",
+            type: "success"
+          });
+        })
+        .catch(err => {
+          ElMessage({
+            message: "很抱歉资源未找到",
+            type: "error"
+          });
+        });
     })
     .catch(err => {
-      alert(err);
+      ElMessage({
+        message: "很抱歉资源未找到",
+        type: "error"
+      });
     });
 };
+/** 关闭音乐 */
 const closeMusic = () => {
   console.log("closed");
   audio.pause();
@@ -46,39 +63,48 @@ const closeMusic = () => {
 components: {
   LoadingCustom;
 }
+onMounted(() => {
+  axios
+    .get("https://wyy-4u9j092ck-h-sina.vercel.app/personalized?limit=5")
+    .then(res => {
+      data.typeList = res.data.result;
+      for (let i = 0; i < data.typeList.length; i++) {
+        axios
+          .get(
+            `https://wyy-4u9j092ck-h-sina.vercel.app/playlist/track/all?id=${data.typeList[i].id}&limit=8&offset=1`
+          )
+          .then(res => {
+            data.musicList[data.typeList[i].id] = res.data.songs;
+          })
+          .catch(err => {
+            alert(err);
+          });
+        data.isLoading = false;
+      }
+    })
+    .catch(err => {
+      alert(err);
+    });
+})
 const data = reactive({
   musicList: [],
   typeList: [],
   isLoading: true
 });
 
-// request('get', `personalized?limit=5`)
-axios
-  .get("https://wyy-4u9j092ck-h-sina.vercel.app/personalized?limit=5")
-  .then(res => {
-    console.log(res.data.result);
-    data.typeList = res.data.result;
-    console.log(data.typeList);
-    for (let i = 0; i < data.typeList.length; i++) {
-      axios
-        .get(
-          `https://wyy-4u9j092ck-h-sina.vercel.app/playlist/track/all?id=${data.typeList[i].id}&limit=8&offset=1`
-        )
-        .then(res => {
-          data.musicList[data.typeList[i].id] = res.data.songs;
-        })
-        .catch(err => {
-          alert(err);
-        });
-      data.isLoading = false;
-    }
-  })
-  .catch(err => {
-    alert(err);
-  });
+/** 切换路由时停止音乐的播放 */
+onBeforeRouteLeave((to, from, next) => {
+  audio.pause();
+  next();
+})
 </script>
 
 <style scoped>
+.main {
+  /* height: 90vh; */
+  /* width: 100%; */
+  /* background-color: red; */
+}
 .main_movie {
   box-sizing: border-box;
   position: relative;

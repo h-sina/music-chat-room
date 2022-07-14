@@ -27,10 +27,10 @@
             </span>
 
             <span>
-              <a @click="fullScreen" v-show="changeFull">
+              <a @click="() => { changeFull = false; fullScreen() }" v-show="changeFull">
                 <font-awesome-icon icon="fa-solid fa-expand" />全屏
               </a>
-              <a @click="smallScreen" v-show="!changeFull">
+              <a @click="() => { changeFull = true;smallScreen() }" v-show="!changeFull">
                 <font-awesome-icon icon="fa-solid fa-compress" />小屏
               </a>
             </span>
@@ -41,7 +41,6 @@
             </span>
           </div>
         </div>
-        <!-- <p id="p"></p> -->
         <div class="main">
           <div id="p"></div>
           <div class="textareaBanner">
@@ -58,6 +57,7 @@
             </span>
           </div>
           <textarea class="textarea" placeholder="回车发送" @keyup.enter="send" v-model="msg"></textarea>
+          <div id="lyric">歌词拼命加载中...</div>
         </div>
       </div>
       <div v-if="!roomVisible" style="width:100%;">
@@ -70,13 +70,13 @@
     </div>
     <el-dialog v-model="dialogVisible" title="分享到" width="30%">
       <div class="share">
-        <a @click="shareToQQ">
+        <a @click="shareToQQ(param)">
           <font-awesome-icon icon="fa-brands fa-qq" />QQ
         </a>
-        <a @click="shareToWeChat">
+        <a @click="shareToWeChat(param)">
           <font-awesome-icon icon="fa-brands fa-weixin" />微信
         </a>
-        <a @click="shareToWebo">
+        <a @click="shareToWebo(param)">
           <font-awesome-icon icon="fa-brands fa-weibo" />微博
         </a>
       </div>
@@ -99,12 +99,18 @@
 
 <script setup>
 import io from 'socket.io-client';
-import { onMounted, ref, computed, reactive, onUnmounted } from 'vue';
+import { onMounted, ref, computed, reactive, onBeforeUnmount } from 'vue';
 import { store } from '@/store/index';
 import axios from 'axios';
-import { musicList, DmusicList } from '@/music/index';
+import { musicList, GetDmusicList } from '@/music/index';
 import { onBeforeRouteLeave } from 'vue-router';
 import { useRouter } from 'vue-router';
+import { ElMessage } from "element-plus";
+import musicRequest from '@/utils/musicRequest';
+import { handleWord } from '@/utils/handleWord';
+import { shareToQQ, shareToWeChat, shareToWebo } from '@/utils/share/share';
+import { fullScreen, requestFullScreen, smallScreen } from '@/utils/fullScreen/index';
+import { handleScroll } from '@/utils/scroll/index';
 const url = 'http://81.69.234.69:8000';
 const persons = ref(0);
 const msg = ref('');
@@ -115,7 +121,6 @@ const roomVisible = ref(true);
 const MdialogVisible = ref(false);
 const router = new useRouter();
 const param = reactive({
-  url: url || 'www.baidu.com',
   /*分享地址*/
   desc: '![http://localhost:3000/chat](点击进入)',
   /*分享理由(可选)*/
@@ -123,75 +128,12 @@ const param = reactive({
   /*分享标题(可选)*/
   summary: '快来和我一起边听边聊',
   /*分享描述(可选)*/
-  // pics: pic || '',
   /*分享图片(可选)*/
-  // flash: '',
   /*视频地址(可选)*/
-  // site: '' /*分享来源 (可选) */
 });
 /** 分享 */
 const share = () => {
   dialogVisible.value = true;
-}
-/** 分享到QQ */
-const shareToQQ = () => {
-  var s = [];
-  for (var i in param) {
-    s.push(i + '=' + encodeURIComponent(param[i] || ''));
-  }
-  var targetUrl = "https://connect.qq.com/widget/shareqq/index.html?" + s.join('&');
-  window.open(targetUrl, '_blank', 'height=520, width=720');
-}
-/** 分享到微信 */
-const shareToWeChat = () => {
-
-}
-/** 分享到微博 */
-const shareToWebo = () => {
-  var temp = [];
-  for (var p in param) {
-    temp.push(p + '=' + encodeURIComponent(param[p] || ''))
-  }
-  var targetUrl = 'http://service.weibo.com/share/share.php?' + temp.join('&');
-  window.open(targetUrl, 'sinaweibo', 'height=800, width=800');
-}
-/** 全屏 */
-const fullScreen = () => {
-  var elem = document.getElementsByClassName("chatRoom")[0];
-  requestFullScreen(elem);
-  changeFull.value = false;
-}
-const requestFullScreen = (element) => {
-  var requestMethod = element.requestFullScreen || element.webkitRequestFullScreen || element.mozRequestFullScreen || element.msRequestFullScreen;
-  if (requestMethod) {
-    requestMethod.call(element);
-  } else if (typeof window.ActiveXObject !== "undefined") {
-    var wscript = new ActiveXObject("WScript.Shell");
-    if (wscript !== null) {
-      wscript.SendKeys("{F11}");
-    }
-  }
-}
-/** 取消全屏 */
-const smallScreen = () => {
-  changeFull.value = true;
-  var $cancelFullScreen = document.getElementsByClassName("chatRoom")[0];
-  if ($cancelFullScreen) {
-    $cancelFullScreen.addEventListener("click", function () {
-      if (document.exitFullscreen) {
-        document.exitFullscreen();
-      }
-      else if (document.msExitFullscreen) {
-        document.msExitFullscreen();
-      }
-      else if (document.mozCancelFullScreen) {
-        document.mozCancelFullScreen();
-      }
-      else if (document.webkitCancelFullScreen) {
-        document.webkitCancelFullScreen();
-      }
-    }, false);
-  }
 }
 
 /** 连接 */
@@ -206,14 +148,48 @@ const socket = io(url, {
 });
 let audio = new Audio();
 
-onMounted(() => {
-  audio.src = musicList[parseInt(Math.random() * musicList.length)];
-  audio.play();
+/** 获取动态歌曲 当进入房间时 */
+async function getDList () {
 
+  // audio.pause();
+  const id = await GetDmusicList().then((res) => {
+    const value = res;
+    if (!value) {
+      ElMessage({
+        message: "暂未匹配到音乐，请稍后再试",
+        type: "error"
+      });
+      return;
+    }
+    const musicURL = value.split(" ")[0];
+    let id = value.split(" ")[1];
+    audio.src = musicURL;
+    audio.play().then(() => {
+
+    }).catch(() => {
+      ElMessage({
+        message: "播放出错",
+        type: "error"
+      });
+    });
+    return id;
+  });
+  const word = await getWord(id).then((res) => {
+    return res.data.lrc.lyric;
+  });
+  /** 歌词处理 */
+  handleWord(word, audio);
+}
+/** 获取歌词 */
+const getWord = (id) => {
+  return musicRequest('get', `/lyric?id=${id}`);
+}
+/** 歌曲停了就重新动态获取歌曲 */
+audio.addEventListener('pause', getDList());
+onMounted(() => {
   socket.on('connect', function () {
     console.log('连接到服务器');
     socket.emit('name', userinfo.username, (response) => {
-      console.log(response)
       persons.value = response.status;
     });
   });
@@ -222,11 +198,16 @@ onMounted(() => {
   newDiv.style.display = 'flex';
   newDiv.style.justifyContent = 'center';
   document.getElementById('p').appendChild(newDiv);
+  ElMessage({
+    message: "注意声音，即将播放音乐",
+    type: "success"
+  });
+  getDList();
+  handleScroll();
+
 });
 /** 监听欢迎广播 */
 socket.on('welcome', (result) => {
-  console.log('Welcome')
-  console.log(result);
   persons.value = result.persons;
   let newDiv = document.createElement('div');
   newDiv.innerHTML = result.time + ' ' + result.msg;
@@ -238,6 +219,8 @@ socket.on('welcome', (result) => {
 /** 监听消息广播 */
 socket.on('broadcast', (result) => {
   createDialog(2, result.msg, result.username);
+  document.getElementById('p').scrollTop =
+    document.getElementById('p').scrollHeight;
 });
 
 /** 监听断开连接 */
@@ -278,7 +261,7 @@ const createDialog = (type, data, username) => {
   one.style.height = '0px';
 
   newDiv.innerHTML = data;
-  newDiv.style.padding = '5px';
+  newDiv.style.padding = '10px';
   newDiv.style.borderRadius = '5px';
 
   container.style.display = 'flex';
@@ -299,7 +282,6 @@ const createDialog = (type, data, username) => {
 
 /** 触发发送消息 */
 const send = () => {
-  console.log(msg.value)
   if (msg.value == '\n' || msg.value == '\n\n') {
     msg.value = '';
     return;
@@ -326,18 +308,24 @@ const pickMusic = () => {
   // MdialogVisible.value = true;
   router.push("/archive");
 }
-/** 切换路由时停止音乐的播放 */
-onBeforeRouteLeave((to, from, next) => {
-  socket.emit('exit', { username: userinfo.username });
-  audio.pause();
-  next();
-})
+
 /** 页面刷新 */
 window.onbeforeunload = (to, from, next) => {
   socket.emit('exit', { username: userinfo.username });
 }
+/** 销毁之前 */
+onBeforeUnmount(() => {
+  audio.pause();
+  socket.emit('exit', { username: userinfo.username });
+})
+/** 切换路由时停止音乐的播放 */
+// onBeforeRouteLeave(() => {
+  // console.log('秦海璐有')
+  // socket.emit('exit', { username: userinfo.username });
+  // audio.pause();
+  // next();
+// })
 </script>
-
 <style scoped>
 .share {
   display: flex;
@@ -390,6 +378,7 @@ a:hover {
   width: 100%;
   height: 93%;
   line-height: 20px;
+  position: relative;
 }
 .textareaBanner {
   border-top: 1px solid black;
@@ -413,10 +402,19 @@ a:hover {
   /* color: white; */
 }
 
+#lyric {
+  position: absolute;
+  bottom: 0;
+  margin: 0 0 0 10px;
+  font-size: 14px;
+}
+
 #p {
   /* background-color: black; */
   width: 100%;
   height: 75%;
-  overflow: scroll;
+  /* overflow: scroll; */
+  overflow-y: scroll;
+  max-height: 75%;
 }
 </style>

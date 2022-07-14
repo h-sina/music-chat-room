@@ -1,44 +1,60 @@
 import axios from 'axios';
 
+import musicRequest from '@/utils/musicRequest';
+
 export const musicList = [
-  'http://m7.music.126.net/20220713133632/cc5aa5a330e23bcc23d96cb26d1532fb/ymusic/a81e/e3e4/7fa3/c3fb27597dab7ace95eedf104eb028e3.mp3',
-  'http://m7.music.126.net/20220713135121/ca4b2c96528c0061518689eec0a2286a/ymusic/obj/w5zDlMODwrDDiGjCn8Ky/2600606923/b00d/2a1b/efed/fed31f328154899ae0517ee03cd6f60c.mp3',
-  'http://m8.music.126.net/20220713135151/4bca9973afefd260ace5813ccdaae79e/ymusic/obj/w5zDlMODwrDDiGjCn8Ky/2673728153/c890/b970/bf35/4c90df0f58370b597e8934b1b8f22c01.mp3',
+  'http://m802.music.126.net/20220713171219/b574e83c0bb47f9aa8f22b15c7b18092/jd-musicrep-ts/5204/3299/6d69/4e46e477f270ca9bd9277c2862f3cb84.mp3',
 ];
 const data = {
-  typeList: [],
   musicList: [],
 };
-let url = '';
-export const DmusicList = () => {
-  axios
-    .get('https://wyy-4u9j092ck-h-sina.vercel.app/personalized?limit=1')
+export async function GetDmusicList() {
+  const qid = await getD();
+  const musicList = await getQ(qid);
+  for (let i = 0; i < musicList.length; i++) {
+    const url = await getL(musicList[i].id);
+    if (url) {
+      return url + ' ' + musicList[i].id;
+    }
+  }
+  return null;
+}
+
+/** 获取歌单 */
+async function getD() {
+  return await musicRequest('get', '/personalized?limit=1')
     .then((res) => {
-      // console.log(res.data.result);
-      data.typeList = res.data.result;
-      // console.log(data.typeList);
-      for (let i = 0; i < data.typeList.length; i++) {
-        axios
-          .get(
-            `https://wyy-4u9j092ck-h-sina.vercel.app/playlist/track/all?id=${data.typeList[i].id}&limit=8&offset=1`
-          )
-          .then((res) => {
-            data.musicList = res.data.songs;
-            url = data.musicList[parseInt(Math.random() * 8)];
-            console.log(url);
-            // console.log(res.data.songs);
-          })
-          .catch((err) => {
-            alert(err);
-          });
-      }
+      const id = res.data.result[0].id;
+      return Promise.resolve(id);
     })
     .catch((err) => {
       alert(err);
     });
-  return url;
-};
-
+}
+/** 获取第一个歌单的全部歌曲 id:歌单id */
+async function getQ(id) {
+  return await musicRequest(
+    'get',
+    `/playlist/track/all?id=${id}&limit=10&offset=1`
+  )
+    .then((res) => {
+      data.musicList = res.data.songs;
+      return Promise.resolve(data.musicList);
+    })
+    .catch((err) => {
+      alert(err);
+    });
+}
+/** 一首歌的播放路径 id:歌曲id*/
+async function getL(id) {
+  return await musicRequest('get', `/song/url?id=${id}`)
+    .then((res) => {
+      return Promise.resolve(res.data.data[0].url);
+    })
+    .catch((err) => {
+      alert(err);
+    });
+}
 export const getWord = () => {
   axios
     .get('https://wyy-4u9j092ck-h-sina.vercel.app/lyric?id=33894312')

@@ -14,14 +14,3 @@
 //     ],
 //   },
 // };
-module.exports = {
-  pwa: {
-    iconPaths: {
-      favicon32: './public/img/favicon.ico',
-      favicon16: './public/img/favicon.ico',
-      appleTouchTcom: './public/img/favicon.ico',
-      maskIcon: './public/img/favicon.ico',
-      msTileImage: './public/img/favicon.ico',
-    },
-  },
-};

@@ -23,7 +23,7 @@ export const getAuth = () => {
     const value = getLocal();
     if (!value) return;
     localMemory.resetCache(value);
-    console.log(value);
+    // console.log(value);
     store.commit('setUserInfo', value.info);
   }
   const value = localMemory.get();

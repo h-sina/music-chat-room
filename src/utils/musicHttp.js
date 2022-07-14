@@ -2,7 +2,7 @@ import axios from 'axios';
 
 /** 配置基本头路径 超时时间 */
 const service = axios.create({
-  baseURL: 'http://81.69.234.69:8003',
+  baseURL: 'https://wyy-4u9j092ck-h-sina.vercel.app',
   timeout: 5000,
 });
 
@@ -36,6 +36,8 @@ service.interceptors.response.use(
       return;
     } else if (status === 401) {
       /** 权限不够 返回登录页 */
+    } else if (status === 404) {
+      alert('抱歉歌曲未有版权无法播放');
     }
     return Promise.reject(error);
   }

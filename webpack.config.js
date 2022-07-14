@@ -59,27 +59,6 @@ module.exports = {
         },
       }),
     ],
-    // splitChunks: {
-    //   chunks: 'async',
-    //   minSize: 20000,
-    //   minRemainingSize: 0,
-    //   minChunks: 1,
-    //   maxAsyncRequests: 30,
-    //   maxInitialRequests: 30,
-    //   enforceSizeThreshold: 50000,
-    //   cacheGroups: {
-    //     defaultVendors: {
-    //       test: /[\\/]node_modules[\\/]/,
-    //       priority: -10,
-    //       reuseExistingChunk: true,
-    //     },
-    //     default: {
-    //       minChunks: 2,
-    //       priority: -20,
-    //       reuseExistingChunk: true,
-    //     },
-    //   },
-    // },
   },
   devServer: {
     static: {
@@ -116,55 +95,9 @@ module.exports = {
         test: /\.css$/,
         use: [MiniCssExtractPlugin.loader, 'css-loader'],
       },
-      // {
-      //   test: /\.js$/,
-      //   include: path.resolve('src'),
-      //   use: [
-      //     {
-      //       loader: 'thread-loader',
-      //       options: {
-      //         // 产生的 worker 的数量，默认是 (cpu 核心数 - 1)，或者，
-      //         // 在 require('os').cpus() 是 undefined 时回退至 1
-      //         workers: 2,
-
-      //         // 一个 worker 进程中并行执行工作的数量
-      //         // 默认为 20
-      //         workerParallelJobs: 50,
-
-      //         // 额外的 node.js 参数
-      //         workerNodeArgs: ['--max-old-space-size=1024'],
-
-      //         // 允许重新生成一个僵死的 work 池
-      //         // 这个过程会降低整体编译速度
-      //         // 并且开发环境应该设置为 false
-      //         poolRespawn: false,
-
-      //         // 闲置时定时删除 worker 进程
-      //         // 默认为 500（ms）
-      //         // 可以设置为无穷大，这样在监视模式(--watch)下可以保持 worker 持续存在
-      //         poolTimeout: 2000,
-
-      //         // 池分配给 worker 的工作数量
-      //         // 默认为 200
-      //         // 降低这个数值会降低总体的效率，但是会提升工作分布更均一
-      //         poolParallelJobs: 50,
-
-      //         // 池的名称
-      //         // 可以修改名称来创建其余选项都一样的池
-      //         name: 'my-pool',
-      //       },
-      //     },
-      //     // 耗时的 loader （例如 babel-loader）
-      //   ],
-      // },
       {
-        test: /\.(png|svg|jpg|jpeg|gif|webp)$/i,
+        test: /\.(png|svg|jpg|jpeg|gif|webp|ico)$/i,
         type: 'asset',
-        // parser: {
-        //   dataUrlCondition: {
-        //     maxSize: 4 * 1024,
-        //   },
-        // },
         generator: {
           filename: 'images/[name].[ext]',
         },
@@ -182,46 +115,15 @@ module.exports = {
       template: path.resolve(__dirname, './public/index.html'),
       chunks: ['index'],
     }),
-    // new MiniCssExtractPlugin({
-    //   filename: 'css/[name].css',
-    //   chunkFilename: 'css/[name].chunk.css',
-    // }),
     new VueLoaderPlugin(),
     new CleanWebpackPlugin(),
     new MiniCssExtractPlugin({
       filename: 'css/[name].css',
-      // chunkFilename: 'css/[name].chunk.css'
     }),
-    // new webpack.IgnorePlugin(/^\.\/locale$/, /moment$/),
     new webpack.IgnorePlugin({
       resourceRegExp: /^\.\/locale$/,
       contextRegExp: /moment$/,
     }),
-    // new ImageMinimizerPlugin({
-    //   minimizerOptions: {
-    //     plugins: ['imagemin-webp'],
-    //   },
-    // }),
-    // new ImageMinimizerPlugin({
-    //   minimizerOptions: {
-    //     // Lossless optimization with custom option
-    //     // Feel free to experiment with options for better result for you
-    //     plugins: [
-    //       ['gifsicle', {interlaced: true}],
-    //       ['jpegtran', {progressive: true}],
-    //       ['optipng', {optimizationLevel: 5}],
-    //     ],
-    //   },
-    // }),
-    // new webpack.ContextReplacementPlugin(/moment[/\\]locale$/, /zh-cn/),
-    // new CompressionPlugin({
-    //   algorithm: 'gzip', // 使用gzip压缩
-    //   test: /\.js$|\.html$|\.css$/, // 匹配文件名
-    //   filename: '[path][base].gz', // 压缩后的文件名(保持原文件名，后缀加.gz)
-    //   minRatio: 0.8, // 压缩率小于1才会压缩
-    //   threshold: 10240, // 对超过10k的数据压缩
-    //   deleteOriginalAssets: false, // 是否删除未压缩的源文件，谨慎设置，如果希望提供非gzip的资源，可不设置或者设置为false（比如删除打包后的gz后还可以加载到原始资源文件）
-    // }),
     AutoImport({
       resolvers: [ElementPlusResolver()],
     }),

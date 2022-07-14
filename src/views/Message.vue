@@ -10,7 +10,7 @@
         :timestamp="moment(item.createdTime).format('YYYY-MM-DD HH:mm:ss')"
       >{{ item.context }}</el-timeline-item>
     </el-timeline>
-    <el-dialog v-model="data.dialogVisible" title="留言欸😎" width="50%" :before-close="handleClose">
+    <el-dialog v-model="data.dialogVisible" title="硕一硕" width="50%" :before-close="handleClose">
       <el-form :model="data.form">
         <el-form-item>
           <el-input v-model="data.form.context"></el-input>
@@ -18,8 +18,8 @@
       </el-form>
       <template #footer>
         <span class="dialog-footer">
-          <el-button @click="data.dialogVisible = false">Cancel</el-button>
-          <el-button type="primary" @click="confirmComment">Confirm</el-button>
+          <el-button @click="data.dialogVisible = false">取消</el-button>
+          <el-button type="primary" @click="confirmComment">确定</el-button>
         </span>
       </template>
     </el-dialog>
@@ -35,8 +35,7 @@ import qs from "qs";
 import { ElMessage } from "element-plus";
 import request from "@/utils/request";
 import { getAuth } from '@/utils/auth';
-const ifAuth = getAuth();
-console.log(ifAuth);
+const Auth = getAuth();
 const data = reactive({
   commentList: [],
   isLoading: false,
@@ -49,19 +48,9 @@ const data = reactive({
 components: {
   LoadingCustom;
 }
-// export default defineComponent({
-//   setup(props, context) {
-
-//   }
-// })
 
 const getComment = () => {
-  request('get', '/my/comment', '', { 'Authorization': ifAuth })
-    // axios({
-    //   url: "http://localhost:3007/my/comment",
-    //   method: "get",
-    //   headers: { Authorization: window.localStorage.token }
-    // })
+  request('get', '/my/comment', '', { 'Authorization': Auth })
     .then(res => {
       data.commentList = res.data;
       data.isLoading = false;
@@ -77,22 +66,16 @@ const handleClose = () => {
 const confirmComment = () => {
   data.form.createdTime = new Date();
   moment(data.form.createdTime).format("YYYY-MM-DD HH:mm:ss");
-  request('post', '/my/addcomment', qs.stringify(data.form), { 'Authorization': ifAuth, 'content-type': 'application/x-www-form-urlencoded' })
-    // axios({
-    //   url: "http://localhost:3007/my/addcomment",
-    //   method: "post",
-    //   data: qs.stringify(data.form),
-    //   headers: { Authorization: window.localStorage.token }
-    // })
+  request('post', '/my/addcomment', qs.stringify(data.form), { 'Authorization': Auth, 'content-type': 'application/x-www-form-urlencoded' })
     .then(res => {
       if (res.data.status == 0) {
         ElMessage({
-          message: "留言成功！🤭",
+          message: "留言成功！",
           type: "success"
         });
       } else {
         ElMessage({
-          message: "留言失败！🤪",
+          message: "留言失败！请联系管理员",
           type: "error"
         });
       }
