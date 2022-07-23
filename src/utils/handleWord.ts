@@ -21,14 +21,18 @@ export const handleWord = (str, myAudio) => {
   }
   function showLrc() {
     let curTime = myAudio.currentTime; //获取当前的播放时间
-    if (
-      curTime > result[flagN][0] &&
-      curTime < result[flagN + 1][0] &&
-      result[flagN][1] &&
-      document.getElementById('lyric').innerHTML !== result[flagN][1]
-    ) {
-      document.getElementById('lyric').innerHTML = result[flagN][1];
-      flagN = flagN === result.length - 2 ? 0 : flagN + 1;
+    try {
+      if (
+        curTime > result[flagN][0] &&
+        curTime < result[flagN + 1][0] &&
+        result[flagN][1] &&
+        document.getElementById('lyric').innerHTML !== result[flagN][1]
+      ) {
+        document.getElementById('lyric').innerHTML = result[flagN][1];
+        flagN = flagN === result.length - 2 ? 0 : flagN + 1;
+      }
+    } catch {
+      
     }
   }
 };

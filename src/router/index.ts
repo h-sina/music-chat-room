@@ -74,6 +74,7 @@ router.beforeEach((to, from, next) => {
     '/chat',
   ];
   const Auth = getAuth();
+  console.log(Auth);
   if (auth.includes(to.fullPath)) {
     if (!Auth) {
       ElMessage({message: '请先登录', type: 'warning'});

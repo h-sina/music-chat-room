@@ -33,6 +33,13 @@ export class Memory {
     if (value.time > now) {
       this.setCache(value);
       this.alive = value.time;
+      return true;
+    } else {
+      /** 删除指定key */
+      window.localStorage.removeItem(KEY);
+      /** 清空localStorage */
+      window.localStorage.clear();
+      return false;
     }
   }
 }
